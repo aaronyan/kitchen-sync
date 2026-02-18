@@ -7,16 +7,14 @@ Keep your settings, agents, commands, and skills in sync across your local machi
 ## Install
 
 ```bash
-bun install -g kitchen-sync
-```
-
-Or for development:
-
-```bash
 git clone https://github.com/yourusername/kitchen-sync.git
 cd kitchen-sync
 bun install
+bun run build
+bun link
 ```
+
+This makes `kitchen-sync` and `ksync` available globally.
 
 ## Quick Start
 
