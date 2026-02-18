@@ -38,10 +38,17 @@ export const initCommand = new Command("init")
     const profileName = profileChoice as string;
     const profile = PROFILES[profileName];
 
+    // Look up existing target and environments for defaults
+    const existing = getTarget(config, profileName);
+    const existingDockerEnv = Object.values(config.environments).find((e) => e.type === "docker");
+    const existingSshEnv = Object.values(config.environments).find((e) => e.type === "ssh");
+
     // Repo URL
+    const repoDefault = existing?.repo ?? "git@github.com:you/dot-claude.git";
     const repo = await clack.text({
       message: "Git repo URL",
-      placeholder: "git@github.com:you/dot-claude.git",
+      placeholder: repoDefault,
+      defaultValue: existing?.repo,
       validate: (v) => {
         if (!v.trim()) return "Repo URL is required";
       },
@@ -53,7 +60,6 @@ export const initCommand = new Command("init")
     }
 
     // Check for existing target
-    const existing = getTarget(config, profileName);
     if (existing) {
       existing.repo = repo as string;
     } else {
@@ -68,9 +74,10 @@ export const initCommand = new Command("init")
     }
 
     // Ask about proxy
+    const existingProxy = existing?.git_env?.HTTPS_PROXY;
     const needsProxy = await clack.confirm({
       message: "Does the git repo need proxy settings?",
-      initialValue: false,
+      initialValue: !!existingProxy,
     });
 
     if (clack.isCancel(needsProxy)) {
@@ -79,9 +86,11 @@ export const initCommand = new Command("init")
     }
 
     if (needsProxy) {
+      const proxyDefault = existingProxy ?? "socks5://127.0.0.1:8080";
       const proxy = await clack.text({
         message: "HTTPS_PROXY",
-        initialValue: "socks5://127.0.0.1:8080",
+        placeholder: proxyDefault,
+        defaultValue: existingProxy,
       });
 
       if (clack.isCancel(proxy)) {
@@ -98,7 +107,7 @@ export const initCommand = new Command("init")
     // Ask about Docker environment
     const addDocker = await clack.confirm({
       message: "Add a Docker environment?",
-      initialValue: false,
+      initialValue: !!existingDockerEnv,
     });
 
     if (clack.isCancel(addDocker)) {
@@ -107,15 +116,27 @@ export const initCommand = new Command("init")
     }
 
     if (addDocker) {
+      const existingDockerTarget = existingDockerEnv?.targets[profileName];
+      const defaultTargetDir = `/home/remote-user/${profile.local_dir.split("/").pop()}`;
+
       const dockerGroup = await clack.group({
         envName: () =>
-          clack.text({ message: "Environment name", initialValue: "my-container" }),
+          clack.text({
+            message: "Environment name",
+            placeholder: existingDockerEnv?.name ?? "my-container",
+            defaultValue: existingDockerEnv?.name,
+          }),
         image: () =>
-          clack.text({ message: "Docker image", initialValue: "ubuntu:latest" }),
+          clack.text({
+            message: "Docker image",
+            placeholder: existingDockerEnv?.image ?? "ubuntu:latest",
+            defaultValue: existingDockerEnv?.image,
+          }),
         targetDir: () =>
           clack.text({
             message: "Target directory in container",
-            initialValue: `/home/remote-user/${profile.local_dir.split("/").pop()}`,
+            placeholder: existingDockerTarget?.target_dir ?? defaultTargetDir,
+            defaultValue: existingDockerTarget?.target_dir,
           }),
       });
 
@@ -141,7 +162,7 @@ export const initCommand = new Command("init")
     // Ask about SSH environment
     const addSsh = await clack.confirm({
       message: "Add an SSH environment?",
-      initialValue: false,
+      initialValue: !!existingSshEnv,
     });
 
     if (clack.isCancel(addSsh)) {
@@ -150,15 +171,27 @@ export const initCommand = new Command("init")
     }
 
     if (addSsh) {
+      const existingSshTarget = existingSshEnv?.targets[profileName];
+      const defaultTargetDir = `~/${profile.local_dir.split("/").pop()}`;
+
       const sshGroup = await clack.group({
         envName: () =>
-          clack.text({ message: "Environment name", initialValue: "my-server" }),
+          clack.text({
+            message: "Environment name",
+            placeholder: existingSshEnv?.name ?? "my-server",
+            defaultValue: existingSshEnv?.name,
+          }),
         host: () =>
-          clack.text({ message: "SSH host", initialValue: "my-server" }),
+          clack.text({
+            message: "SSH host",
+            placeholder: existingSshEnv?.host ?? "my-server",
+            defaultValue: existingSshEnv?.host,
+          }),
         targetDir: () =>
           clack.text({
             message: "Target directory on host",
-            initialValue: `~/${profile.local_dir.split("/").pop()}`,
+            placeholder: existingSshTarget?.target_dir ?? defaultTargetDir,
+            defaultValue: existingSshTarget?.target_dir,
           }),
       });
 
