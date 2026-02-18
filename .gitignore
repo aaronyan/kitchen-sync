@@ -1,9 +1,4 @@
-__pycache__/
-*.pyc
-*.egg-info/
+node_modules/
 dist/
-build/
-.pytest_cache/
-.coverage
-*.egg
+*.tsbuildinfo
 VISION.md

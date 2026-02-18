@@ -7,7 +7,7 @@ Keep your settings, agents, commands, and skills in sync across your local machi
 ## Install
 
 ```bash
-pip install kitchen-sync
+npm install -g kitchen-sync
 ```
 
 Or for development:
@@ -15,7 +15,7 @@ Or for development:
 ```bash
 git clone https://github.com/yourusername/kitchen-sync.git
 cd kitchen-sync
-pip install -e ".[dev]"
+bun install
 ```
 
 ## Quick Start
@@ -46,7 +46,7 @@ kitchen-sync install my-container
 | `kitchen-sync diff ENV` | Show unified diff of local vs remote |
 | `kitchen-sync list-profiles` | Show available platform profiles |
 
-All commands support `--dry-run` where applicable.
+All commands support `--dry-run` where applicable. The `ksync` alias is also available.
 
 ## How It Works
 
@@ -125,7 +125,7 @@ For git repos behind a proxy, add `git_env` to the target:
 |---|---|---|
 | **docker** | `docker ps --filter ancestor=IMAGE` | `docker cp` |
 | **ssh** | `ssh -o ConnectTimeout=5 HOST true` | `rsync -avz --delete` |
-| **local** | Always available | `shutil.copytree` |
+| **local** | Always available | `fs.cpSync` |
 
 ## Profiles
 
@@ -138,8 +138,10 @@ More profiles coming soon (Codex CLI, Cursor, Windsurf, Aider).
 ## Development
 
 ```bash
-pip install -e ".[dev]"
-pytest
+bun install       # Install dependencies
+bun test          # Run tests
+bun run build     # Build for distribution
+bun run dev       # Run CLI directly via bun
 ```
 
 ## License

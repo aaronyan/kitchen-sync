@@ -1,0 +1,42 @@
+{
+  "name": "kitchen-sync",
+  "version": "0.1.0",
+  "description": "Sync agentic engineering configs across environments using git",
+  "type": "module",
+  "bin": {
+    "kitchen-sync": "dist/index.js",
+    "ksync": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node && chmod +x dist/index.js",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "cli",
+    "sync",
+    "config",
+    "claude",
+    "dotfiles",
+    "agentic"
+  ],
+  "author": "Aaron Yan",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "commander": "^14.0.0",
+    "diff": "^7.0.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ]
+}
