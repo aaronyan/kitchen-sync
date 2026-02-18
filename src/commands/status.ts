@@ -3,14 +3,14 @@ import * as fs from "fs";
 import * as path from "path";
 import { loadConfig, localPath } from "../config.js";
 import { gitStatusForPaths } from "../sync.js";
-import { info, warn, heading, styled, blank } from "../ui.js";
+import { info, warn, heading, styled, blank, cmd } from "../ui.js";
 
 export const statusCommand = new Command("status")
   .description("Show uncommitted changes in sync paths and ahead/behind remote")
   .action(() => {
     const config = loadConfig();
     if (config.targets.length === 0) {
-      warn("No targets configured. Run: kitchen-sync init");
+      warn(`No targets configured. Run: ${cmd("kitchen-sync init")}`);
       return;
     }
 

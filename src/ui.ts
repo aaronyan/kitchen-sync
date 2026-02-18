@@ -33,3 +33,7 @@ export function heading(msg: string): void {
 export function blank(): void {
   console.log();
 }
+
+export function cmd(command: string): string {
+  return pc.bold(pc.cyan(command));
+}

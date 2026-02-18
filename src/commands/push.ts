@@ -2,7 +2,7 @@ import { Command } from "commander";
 import * as fs from "fs";
 import { loadConfig, getTarget, localPath } from "../config.js";
 import { gitPush } from "../sync.js";
-import { info, warn, error, heading, styled, blank } from "../ui.js";
+import { info, warn, error, heading, styled, blank, cmd } from "../ui.js";
 
 export const pushCommand = new Command("push")
   .description("Stage sync paths, commit, and push to git")
@@ -12,7 +12,7 @@ export const pushCommand = new Command("push")
   .action((opts) => {
     const config = loadConfig();
     if (config.targets.length === 0) {
-      warn("No targets configured. Run: kitchen-sync init");
+      warn(`No targets configured. Run: ${cmd("kitchen-sync init")}`);
       return;
     }
 

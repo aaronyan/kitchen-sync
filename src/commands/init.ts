@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import * as clack from "@clack/prompts";
+import { cmd } from "../ui.js";
 import {
   loadConfig,
   saveConfig,
@@ -181,5 +182,5 @@ export const initCommand = new Command("init")
     }
 
     saveConfig(config);
-    clack.outro(`Config saved to ${CONFIG_FILE}. Ready to cook! Try: kitchen-sync status`);
+    clack.outro(`Config saved. Ready to cook! Try: ${cmd("kitchen-sync status")}`);
   });
