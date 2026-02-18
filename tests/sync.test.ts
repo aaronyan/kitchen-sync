@@ -66,6 +66,19 @@ describe("prepareStaging", () => {
     expect(fs.statSync(resolved).isDirectory()).toBe(true);
     expect(fs.readFileSync(path.join(resolved, "ext-skill.md"), "utf-8")).toBe("external skill content\n");
   });
+
+  test("skips symlinks resolving outside source boundary", () => {
+    const base = tmpDir();
+    const source = createMockSourceDir(base);
+    // Add a symlink pointing outside source
+    fs.symlinkSync(path.join(base, "external"), path.join(source, "skills", "outside-link"));
+    const staging = prepareStaging(source, ["skills"], true);
+    tmpDirs.push(staging);
+    // The internal symlink should be resolved
+    expect(fs.existsSync(path.join(staging, "skills", "ext-skill"))).toBe(true);
+    // The external symlink should be skipped
+    expect(fs.existsSync(path.join(staging, "skills", "outside-link"))).toBe(false);
+  });
 });
 
 describe("collectFiles", () => {

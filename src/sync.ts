@@ -4,12 +4,20 @@ import * as path from "path";
 import { execSync, spawnSync } from "child_process";
 import { createTwoFilesPatch } from "diff";
 
+function isWithinBoundary(resolvedPath: string, boundary: string): boolean {
+  const normalizedResolved = path.resolve(resolvedPath) + path.sep;
+  const normalizedBoundary = path.resolve(boundary) + path.sep;
+  return normalizedResolved.startsWith(normalizedBoundary) ||
+    path.resolve(resolvedPath) === path.resolve(boundary);
+}
+
 export function prepareStaging(
   sourceDir: string,
   syncPaths: string[],
   resolveSymlinks = false,
 ): string {
   const staging = fs.mkdtempSync(path.join(os.tmpdir(), "ksync-"));
+  const boundary = fs.realpathSync(sourceDir);
 
   for (const sp of syncPaths) {
     const src = path.join(sourceDir, sp);
@@ -22,9 +30,13 @@ export function prepareStaging(
       fs.mkdirSync(path.dirname(dst), { recursive: true });
       if (resolveSymlinks && stat.isSymbolicLink()) {
         const real = fs.realpathSync(src);
+        if (!isWithinBoundary(real, boundary)) {
+          process.stderr.write(`Warning: skipping symlink ${sp} (resolves outside source: ${real})\n`);
+          continue;
+        }
         const realStat = fs.statSync(real);
         if (realStat.isDirectory()) {
-          copyDirRecursive(real, dst, false);
+          copyDirRecursive(real, dst, false, boundary);
         } else {
           fs.copyFileSync(real, dst);
         }
@@ -34,13 +46,17 @@ export function prepareStaging(
         fs.copyFileSync(src, dst);
       }
     } else if (stat.isDirectory()) {
-      copyDirRecursive(src, dst, resolveSymlinks);
+      copyDirRecursive(src, dst, resolveSymlinks, boundary);
     } else if (stat.isSymbolicLink()) {
       // Symlink pointing to a directory
       fs.mkdirSync(path.dirname(dst), { recursive: true });
       if (resolveSymlinks) {
         const real = fs.realpathSync(src);
-        copyDirRecursive(real, dst, false);
+        if (!isWithinBoundary(real, boundary)) {
+          process.stderr.write(`Warning: skipping symlink ${sp} (resolves outside source: ${real})\n`);
+          continue;
+        }
+        copyDirRecursive(real, dst, false, boundary);
       } else {
         fs.symlinkSync(fs.readlinkSync(src), dst);
       }
@@ -50,7 +66,7 @@ export function prepareStaging(
   return staging;
 }
 
-function copyDirRecursive(src: string, dst: string, resolveSymlinks: boolean): void {
+function copyDirRecursive(src: string, dst: string, resolveSymlinks: boolean, boundary: string): void {
   fs.mkdirSync(dst, { recursive: true });
 
   for (const entry of fs.readdirSync(src)) {
@@ -67,9 +83,13 @@ function copyDirRecursive(src: string, dst: string, resolveSymlinks: boolean): v
           // Skip broken symlinks
           continue;
         }
+        if (!isWithinBoundary(real, boundary)) {
+          process.stderr.write(`Warning: skipping symlink ${entry} (resolves outside source: ${real})\n`);
+          continue;
+        }
         const realStat = fs.statSync(real);
         if (realStat.isDirectory()) {
-          copyDirRecursive(real, dstPath, false);
+          copyDirRecursive(real, dstPath, false, boundary);
         } else if (realStat.isFile()) {
           fs.copyFileSync(real, dstPath);
         }
@@ -77,7 +97,7 @@ function copyDirRecursive(src: string, dst: string, resolveSymlinks: boolean): v
         fs.symlinkSync(fs.readlinkSync(srcPath), dstPath);
       }
     } else if (stat.isDirectory()) {
-      copyDirRecursive(srcPath, dstPath, resolveSymlinks);
+      copyDirRecursive(srcPath, dstPath, resolveSymlinks, boundary);
     } else if (stat.isFile()) {
       fs.copyFileSync(srcPath, dstPath);
     }

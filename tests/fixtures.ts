@@ -68,11 +68,16 @@ export function createMockSourceDir(tmpDir: string): string {
   fs.mkdirSync(skills);
   fs.writeFileSync(path.join(skills, "local-skill.md"), "local skill content\n");
 
-  // Create a target that the symlink will point to
+  // Create an internal target that the symlink will point to (within source)
+  const internal = path.join(source, "shared");
+  fs.mkdirSync(internal);
+  fs.writeFileSync(path.join(internal, "ext-skill.md"), "external skill content\n");
+  fs.symlinkSync(internal, path.join(skills, "ext-skill"));
+
+  // Create an external target outside source for boundary tests
   const external = path.join(tmpDir, "external");
   fs.mkdirSync(external);
-  fs.writeFileSync(path.join(external, "ext-skill.md"), "external skill content\n");
-  fs.symlinkSync(external, path.join(skills, "ext-skill"));
+  fs.writeFileSync(path.join(external, "secret.md"), "sensitive data\n");
 
   return source;
 }
