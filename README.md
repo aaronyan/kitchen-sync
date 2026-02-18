@@ -7,7 +7,7 @@ Keep your settings, agents, commands, and skills in sync across your local machi
 ## Install
 
 ```bash
-npm install -g kitchen-sync
+bun install -g kitchen-sync
 ```
 
 Or for development:
