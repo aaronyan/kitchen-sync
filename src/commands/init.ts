@@ -212,5 +212,15 @@ export const initCommand = new Command("init")
     }
 
     saveConfig(config);
-    clack.outro(`Config saved. Ready to cook! Try: ${cmd("kitchen-sync status")}`);
+
+    const envNames = Object.keys(config.environments);
+    const nextSteps = [
+      `${cmd("kitchen-sync status")}         — see what's in sync`,
+      `${cmd("kitchen-sync list envs")}      — view configured environments`,
+      ...(envNames.length > 0
+        ? [`${cmd(`kitchen-sync install ${envNames[0]}`)}  — push configs to an environment`]
+        : []),
+    ];
+
+    clack.outro(`Config saved. Next steps:\n\n${nextSteps.join("\n")}`);
   });

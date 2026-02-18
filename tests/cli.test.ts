@@ -49,11 +49,27 @@ describe("CLI", () => {
     expect(result.stdout).toContain("push");
   });
 
-  test("list-profiles shows claude", () => {
-    const result = run("list-profiles");
+  test("list profiles shows claude", () => {
+    const result = run("list", "profiles");
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("claude");
     expect(result.stdout).toContain("~/.claude");
+  });
+
+  test("list envs runs successfully", () => {
+    const result = run("list", "envs");
+    expect(result.exitCode).toBe(0);
+    // Either shows configured environments or "No environments" message
+    const hasEnvs = result.stdout.includes("Configured environments");
+    const hasNone = result.stdout.includes("No environments configured");
+    expect(hasEnvs || hasNone).toBe(true);
+  });
+
+  test("bare list shows help", () => {
+    const result = run("list");
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("profiles");
+    expect(result.stdout).toContain("envs");
   });
 
   test("status with no config warns", () => {

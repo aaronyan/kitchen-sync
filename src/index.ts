@@ -6,7 +6,7 @@ import { pushCommand } from "./commands/push.js";
 import { pullCommand } from "./commands/pull.js";
 import { installCommand } from "./commands/install.js";
 import { diffCommand } from "./commands/diff.js";
-import { listProfilesCommand } from "./commands/list-profiles.js";
+import { listCommand } from "./commands/list.js";
 
 const VERSION = "0.1.0";
 
@@ -23,6 +23,6 @@ program.addCommand(pushCommand);
 program.addCommand(pullCommand);
 program.addCommand(installCommand);
 program.addCommand(diffCommand);
-program.addCommand(listProfilesCommand);
+program.addCommand(listCommand);
 
 program.parse();
