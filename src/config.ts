@@ -34,6 +34,13 @@ export interface Config {
   environments: Record<string, EnvironmentConfig>;
 }
 
+export function validateSyncPath(p: string): void {
+  if (/\0/.test(p)) throw new Error(`Invalid sync path (null byte): ${p}`);
+  if (path.isAbsolute(p)) throw new Error(`Invalid sync path (absolute): ${p}`);
+  const normalized = path.normalize(p);
+  if (normalized.startsWith("..")) throw new Error(`Invalid sync path (traversal): ${p}`);
+}
+
 export function localPath(target: TargetConfig): string {
   const dir = target.local_dir.replace(/^~/, os.homedir());
   return path.resolve(dir);
@@ -55,14 +62,18 @@ export function loadConfig(configPath?: string): Config {
 
   const data = JSON.parse(fs.readFileSync(p, "utf-8"));
 
-  const targets: TargetConfig[] = (data.targets ?? []).map((t: any) => ({
-    name: t.name,
-    profile: t.profile,
-    repo: t.repo,
-    local_dir: t.local_dir,
-    sync_paths: t.sync_paths ?? [],
-    ...(t.git_env && Object.keys(t.git_env).length > 0 ? { git_env: t.git_env } : {}),
-  }));
+  const targets: TargetConfig[] = (data.targets ?? []).map((t: any) => {
+    const syncPaths: string[] = t.sync_paths ?? [];
+    for (const sp of syncPaths) validateSyncPath(sp);
+    return {
+      name: t.name,
+      profile: t.profile,
+      repo: t.repo,
+      local_dir: t.local_dir,
+      sync_paths: syncPaths,
+      ...(t.git_env && Object.keys(t.git_env).length > 0 ? { git_env: t.git_env } : {}),
+    };
+  });
 
   const environments: Record<string, EnvironmentConfig> = {};
   for (const [ename, econf] of Object.entries(data.environments ?? {})) {
