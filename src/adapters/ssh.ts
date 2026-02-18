@@ -7,20 +7,23 @@ export class SshEnvironment extends Environment {
 
   constructor(host: string) {
     super();
+    if (/^-/.test(host) || /\0/.test(host)) {
+      throw new Error(`Invalid SSH host: ${host}`);
+    }
     this.host = host;
   }
 
   isAvailable(): boolean {
     const result = spawnSync(
       "ssh",
-      ["-o", "ConnectTimeout=5", this.host, "true"],
+      ["-o", "ConnectTimeout=5", "--", this.host, "true"],
       { encoding: "utf-8" },
     );
     return result.status === 0;
   }
 
   run(cmd: string[]): RunResult {
-    const result = spawnSync("ssh", [this.host, ...cmd], { encoding: "utf-8" });
+    const result = spawnSync("ssh", ["--", this.host, ...cmd], { encoding: "utf-8" });
     return {
       stdout: result.stdout ?? "",
       stderr: result.stderr ?? "",

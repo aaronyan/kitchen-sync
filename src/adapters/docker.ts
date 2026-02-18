@@ -1,12 +1,17 @@
 import { spawnSync } from "child_process";
 import { Environment, type RunResult } from "./base.js";
 
+const DOCKER_IMAGE_RE = /^[a-zA-Z0-9][a-zA-Z0-9._\/:@-]*$/;
+
 export class DockerEnvironment extends Environment {
   private image: string;
   private _containerId: string | null = null;
 
   constructor(image: string) {
     super();
+    if (!DOCKER_IMAGE_RE.test(image) || /\0/.test(image)) {
+      throw new Error(`Invalid Docker image name: ${image}`);
+    }
     this.image = image;
   }
 
