@@ -63,52 +63,52 @@ export const installCommand = new Command("install")
       const resolveSymlinks = envTarget.resolve_symlinks !== false;
       const staging = prepareStaging(lp, target.sync_paths, resolveSymlinks);
 
-      // Count resolved symlinks
-      const symlinkCount = countResolvedSymlinks(lp, target.sync_paths);
+      try {
+        // Count resolved symlinks
+        const symlinkCount = countResolvedSymlinks(lp, target.sync_paths);
 
-      // Show what's being deployed
-      const garnish = target.sync_paths.filter((sp) =>
-        fs.existsSync(path.join(staging, sp)),
-      );
-      if (garnish.length > 0) {
-        info(`  Garnishing: ${garnish.join(", ")}`);
-      } else {
-        info("  Nothing to plate (no matching files).");
-        fs.rmSync(staging, { recursive: true, force: true });
-        continue;
-      }
-
-      if (symlinkCount > 0) {
-        info(`  Resolved ${symlinkCount} symlink(s)`);
-      }
-
-      if (opts.dryRun) {
-        info("  (dry-run) Would deploy the above.");
-        fs.rmSync(staging, { recursive: true, force: true });
-        continue;
-      }
-
-      if (!opts.yes) {
-        blank();
-        warn(`  This will delete and replace on ${adapter.displayName}:`);
-        for (const sp of garnish) {
-          info(`    ${envTarget.target_dir}/${sp}`);
-        }
-        blank();
-        const confirmed = await clack.confirm({
-          message: "Proceed with install?",
-          initialValue: true,
-        });
-        if (clack.isCancel(confirmed) || !confirmed) {
-          info("  Skipped.");
-          fs.rmSync(staging, { recursive: true, force: true });
+        // Show what's being deployed
+        const garnish = target.sync_paths.filter((sp) =>
+          fs.existsSync(path.join(staging, sp)),
+        );
+        if (garnish.length > 0) {
+          info(`  Garnishing: ${garnish.join(", ")}`);
+        } else {
+          info("  Nothing to plate (no matching files).");
           continue;
         }
-      }
 
-      adapter.clean(envTarget.target_dir, target.sync_paths);
-      adapter.deploy(staging, envTarget.target_dir, target.sync_paths);
-      fs.rmSync(staging, { recursive: true, force: true });
+        if (symlinkCount > 0) {
+          info(`  Resolved ${symlinkCount} symlink(s)`);
+        }
+
+        if (opts.dryRun) {
+          info("  (dry-run) Would deploy the above.");
+          continue;
+        }
+
+        if (!opts.yes) {
+          blank();
+          warn(`  This will delete and replace on ${adapter.displayName}:`);
+          for (const sp of garnish) {
+            info(`    ${envTarget.target_dir}/${sp}`);
+          }
+          blank();
+          const confirmed = await clack.confirm({
+            message: "Proceed with install?",
+            initialValue: true,
+          });
+          if (clack.isCancel(confirmed) || !confirmed) {
+            info("  Skipped.");
+            continue;
+          }
+        }
+
+        adapter.clean(envTarget.target_dir, target.sync_paths);
+        adapter.deploy(staging, envTarget.target_dir, target.sync_paths);
+      } finally {
+        fs.rmSync(staging, { recursive: true, force: true });
+      }
     }
 
     blank();
