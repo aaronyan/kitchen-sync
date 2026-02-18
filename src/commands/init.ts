@@ -13,6 +13,13 @@ import {
 } from "../config.js";
 import { PROFILES } from "../profiles.js";
 
+/** If an existing value is set, pre-fill the input; otherwise show a greyed-out placeholder. */
+function textDefaults(existing: string | undefined, fallback: string) {
+  return existing
+    ? { initialValue: existing }
+    : { placeholder: fallback };
+}
+
 export const initCommand = new Command("init")
   .description("Interactive setup: pick a profile, set repo URL, register environments")
   .action(async () => {
@@ -44,11 +51,9 @@ export const initCommand = new Command("init")
     const existingSshEnv = Object.values(config.environments).find((e) => e.type === "ssh");
 
     // Repo URL
-    const repoDefault = existing?.repo ?? "git@github.com:you/dot-claude.git";
     const repo = await clack.text({
       message: "Git repo URL",
-      placeholder: repoDefault,
-      defaultValue: existing?.repo,
+      ...textDefaults(existing?.repo, "git@github.com:you/dot-claude.git"),
       validate: (v) => {
         if (!v.trim()) return "Repo URL is required";
       },
@@ -86,11 +91,9 @@ export const initCommand = new Command("init")
     }
 
     if (needsProxy) {
-      const proxyDefault = existingProxy ?? "socks5://127.0.0.1:8080";
       const proxy = await clack.text({
         message: "HTTPS_PROXY",
-        placeholder: proxyDefault,
-        defaultValue: existingProxy,
+        ...textDefaults(existingProxy, "socks5://127.0.0.1:8080"),
       });
 
       if (clack.isCancel(proxy)) {
@@ -123,20 +126,17 @@ export const initCommand = new Command("init")
         envName: () =>
           clack.text({
             message: "Environment name",
-            placeholder: existingDockerEnv?.name ?? "my-container",
-            defaultValue: existingDockerEnv?.name,
+            ...textDefaults(existingDockerEnv?.name, "my-container"),
           }),
         image: () =>
           clack.text({
             message: "Docker image",
-            placeholder: existingDockerEnv?.image ?? "ubuntu:latest",
-            defaultValue: existingDockerEnv?.image,
+            ...textDefaults(existingDockerEnv?.image, "ubuntu:latest"),
           }),
         targetDir: () =>
           clack.text({
             message: "Target directory in container",
-            placeholder: existingDockerTarget?.target_dir ?? defaultTargetDir,
-            defaultValue: existingDockerTarget?.target_dir,
+            ...textDefaults(existingDockerTarget?.target_dir, defaultTargetDir),
           }),
       });
 
@@ -178,20 +178,17 @@ export const initCommand = new Command("init")
         envName: () =>
           clack.text({
             message: "Environment name",
-            placeholder: existingSshEnv?.name ?? "my-server",
-            defaultValue: existingSshEnv?.name,
+            ...textDefaults(existingSshEnv?.name, "my-server"),
           }),
         host: () =>
           clack.text({
             message: "SSH host",
-            placeholder: existingSshEnv?.host ?? "my-server",
-            defaultValue: existingSshEnv?.host,
+            ...textDefaults(existingSshEnv?.host, "my-server"),
           }),
         targetDir: () =>
           clack.text({
             message: "Target directory on host",
-            placeholder: existingSshTarget?.target_dir ?? defaultTargetDir,
-            defaultValue: existingSshTarget?.target_dir,
+            ...textDefaults(existingSshTarget?.target_dir, defaultTargetDir),
           }),
       });
 
