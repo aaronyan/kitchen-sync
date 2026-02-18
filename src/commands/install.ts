@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import * as fs from "fs";
 import * as path from "path";
+import * as clack from "@clack/prompts";
 import { loadConfig, getTarget, getEnvironment, localPath } from "../config.js";
 import { createAdapter } from "../adapters/index.js";
 import { prepareStaging } from "../sync.js";
@@ -10,7 +11,8 @@ export const installCommand = new Command("install")
   .description("Deploy configs to a named environment")
   .argument("<env-name>", "Environment name")
   .option("--dry-run", "Show what would be deployed")
-  .action((envName: string, opts) => {
+  .option("-y, --yes", "Skip confirmation prompt")
+  .action(async (envName: string, opts) => {
     const config = loadConfig();
     const envConfig = getEnvironment(config, envName);
     if (!envConfig) {
@@ -84,6 +86,24 @@ export const installCommand = new Command("install")
         info("  (dry-run) Would deploy the above.");
         fs.rmSync(staging, { recursive: true, force: true });
         continue;
+      }
+
+      if (!opts.yes) {
+        blank();
+        warn(`  This will delete and replace on ${adapter.displayName}:`);
+        for (const sp of garnish) {
+          info(`    ${envTarget.target_dir}/${sp}`);
+        }
+        blank();
+        const confirmed = await clack.confirm({
+          message: "Proceed with install?",
+          initialValue: true,
+        });
+        if (clack.isCancel(confirmed) || !confirmed) {
+          info("  Skipped.");
+          fs.rmSync(staging, { recursive: true, force: true });
+          continue;
+        }
       }
 
       adapter.clean(envTarget.target_dir, target.sync_paths);
