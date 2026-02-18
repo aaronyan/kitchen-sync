@@ -2,7 +2,7 @@ import { Command } from "commander";
 import * as fs from "fs";
 import { loadConfig, getTarget, localPath } from "../config.js";
 import { gitPull } from "../sync.js";
-import { info, warn, error, heading, blank, cmd } from "../ui.js";
+import { info, warn, error, heading, blank, cmd, sanitizeUrls } from "../ui.js";
 
 export const pullCommand = new Command("pull")
   .description("Pull latest from remote")
@@ -40,7 +40,7 @@ export const pullCommand = new Command("pull")
         const output = gitPull(lp, target.git_env, opts.dryRun);
         info(`  ${output}`);
       } catch (e: any) {
-        error(`  Pull failed: ${e.message ?? e}`);
+        error(`  Pull failed: ${sanitizeUrls(e.message ?? String(e))}`);
       }
     }
 

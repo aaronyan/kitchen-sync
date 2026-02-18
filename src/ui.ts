@@ -37,3 +37,7 @@ export function blank(): void {
 export function cmd(command: string): string {
   return pc.bold(pc.cyan(command));
 }
+
+export function sanitizeUrls(text: string): string {
+  return text.replace(/:\/\/[^@\s]+@/g, "://<redacted>@");
+}
