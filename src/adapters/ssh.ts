@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as path from "path";
 import { spawnSync } from "child_process";
 import { Environment, type RunResult } from "./base.js";
@@ -62,14 +63,13 @@ export class SshEnvironment extends Environment {
       const src = path.join(stagingDir, sp);
       // Check if source exists using node fs (staging is local)
       try {
-        const { statSync } = require("fs");
-        statSync(src);
+        fs.statSync(src);
       } catch {
         continue;
       }
 
       const remotePath = `${this.host}:${targetDir}/${sp}`;
-      const srcStat = require("fs").statSync(src);
+      const srcStat = fs.statSync(src);
 
       if (srcStat.isDirectory()) {
         const parentDir = `${targetDir}/${sp}`;

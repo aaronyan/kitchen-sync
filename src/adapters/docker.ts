@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import { spawnSync } from "child_process";
 import { Environment, type RunResult } from "./base.js";
 
@@ -87,8 +88,7 @@ export class DockerEnvironment extends Environment {
       const src = `${stagingDir}/${sp}`;
       // Check if source exists using node fs (staging is local)
       try {
-        const { statSync } = require("fs");
-        statSync(src);
+        fs.statSync(src);
       } catch {
         continue;
       }
