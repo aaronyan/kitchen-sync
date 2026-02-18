@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { execSync, spawnSync } from "child_process";
+import { spawnSync } from "child_process";
 import { createTwoFilesPatch } from "diff";
 
 function isWithinBoundary(resolvedPath: string, boundary: string): boolean {
