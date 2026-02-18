@@ -6,15 +6,21 @@ Keep your settings, agents, commands, and skills in sync across your local machi
 
 ## Install
 
+Requires [bun](https://bun.sh).
+
 ```bash
 git clone https://github.com/yourusername/kitchen-sync.git
 cd kitchen-sync
-bun install
-bun run build
-bun link
+./setup.sh
 ```
 
-This makes `kitchen-sync` and `ksync` available globally.
+This installs dependencies, builds the CLI, and links `kitchen-sync` and `ksync` into `~/.local/bin` (adding it to your PATH if needed).
+
+To uninstall:
+
+```bash
+./uninstall.sh
+```
 
 ## Quick Start
 
