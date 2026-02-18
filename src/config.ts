@@ -60,7 +60,12 @@ export function loadConfig(configPath?: string): Config {
     return { version: CONFIG_VERSION, targets: [], environments: {} };
   }
 
-  const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+  let data: any;
+  try {
+    data = JSON.parse(fs.readFileSync(p, "utf-8"));
+  } catch {
+    throw new Error(`Invalid config file at ${p}. Delete it and run "kitchen-sync init" to recreate.`);
+  }
 
   const targets: TargetConfig[] = (data.targets ?? []).map((t: any) => {
     const syncPaths: string[] = t.sync_paths ?? [];
