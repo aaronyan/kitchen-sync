@@ -2,3 +2,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 VISION.md
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
