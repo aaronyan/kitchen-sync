@@ -135,5 +135,5 @@ export function saveConfig(config: Config, configPath?: string): void {
     data.environments[ename] = ed;
   }
 
-  fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
+  fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n", { mode: 0o600 });
 }
