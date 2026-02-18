@@ -67,8 +67,20 @@ export function loadConfig(configPath?: string): Config {
     throw new Error(`Invalid config file at ${p}. Delete it and run "kitchen-sync init" to recreate.`);
   }
 
-  const targets: TargetConfig[] = (data.targets ?? []).map((t: any) => {
+  if (!Array.isArray(data.targets ?? [])) {
+    throw new Error("Invalid config: 'targets' must be an array");
+  }
+
+  const targets: TargetConfig[] = (data.targets ?? []).map((t: any, i: number) => {
+    if (typeof t !== "object" || t === null) throw new Error(`Invalid config: target[${i}] must be an object`);
+    if (typeof t.name !== "string") throw new Error(`Invalid config: target[${i}].name must be a string`);
+    if (typeof t.profile !== "string") throw new Error(`Invalid config: target[${i}].profile must be a string`);
+    if (typeof t.repo !== "string") throw new Error(`Invalid config: target[${i}].repo must be a string`);
+    if (typeof t.local_dir !== "string") throw new Error(`Invalid config: target[${i}].local_dir must be a string`);
     const syncPaths: string[] = t.sync_paths ?? [];
+    if (!Array.isArray(syncPaths) || !syncPaths.every((s: any) => typeof s === "string")) {
+      throw new Error(`Invalid config: target[${i}].sync_paths must be an array of strings`);
+    }
     for (const sp of syncPaths) validateSyncPath(sp);
     return {
       name: t.name,
@@ -81,11 +93,17 @@ export function loadConfig(configPath?: string): Config {
   });
 
   const environments: Record<string, EnvironmentConfig> = {};
+  if (data.environments != null && typeof data.environments !== "object") {
+    throw new Error("Invalid config: 'environments' must be an object");
+  }
   for (const [ename, econf] of Object.entries(data.environments ?? {})) {
     const ec = econf as any;
+    if (typeof ec !== "object" || ec === null) throw new Error(`Invalid config: environment '${ename}' must be an object`);
+    if (typeof ec.type !== "string") throw new Error(`Invalid config: environment '${ename}'.type must be a string`);
     const envTargets: Record<string, EnvTargetConfig> = {};
     for (const [tname, tconf] of Object.entries(ec.targets ?? {})) {
       const tc = tconf as any;
+      if (typeof tc.target_dir !== "string") throw new Error(`Invalid config: environment '${ename}'.targets.${tname}.target_dir must be a string`);
       envTargets[tname] = {
         target_dir: tc.target_dir,
         ...(tc.resolve_symlinks !== undefined ? { resolve_symlinks: tc.resolve_symlinks } : {}),
